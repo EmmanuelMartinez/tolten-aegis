@@ -194,10 +194,16 @@ return {
     async function resolveKnowledge(rel) {
       const n = normRel(rel)
       const root = projectRoot()
-      if (n === '.clinerules' || n === 'AGENTS.md') return fs.resolve(root + '/' + n, {})
-      const base = await fs.resolve(root + '/.agents', {})
-      const target = await fs.resolve(root + '/' + n, {})
-      if (!fs.contains(base, target)) throw new Error('outside knowledge base: ' + n)
+      const agentsBase = await fs.resolve(root + '/.agents', {})
+      // root-relative special files (.clinerules, AGENTS.md) or already-prefixed .agents/...
+      if (n === '.clinerules' || n === 'AGENTS.md' || n.indexOf('.agents/') === 0) {
+        const target = await fs.resolve(root + '/' + n, {})
+        if (n.indexOf('.agents/') === 0 && !fs.contains(agentsBase, target)) throw new Error('outside knowledge base: ' + n)
+        return target
+      }
+      // .agents-relative paths (skills/<name>/SKILL.md, rules/<file>.md)
+      const target = await fs.resolve(root + '/.agents/' + n, {})
+      if (!fs.contains(agentsBase, target)) throw new Error('outside knowledge base: ' + n)
       return target
     }
 
