@@ -1,0 +1,62 @@
+{
+  "name": "@tolten/aegis",
+  "version": "0.1.0",
+  "description": "The shield that makes DeepSeek Harness infallible on any project — .agents rules/skills/constitution + MCP (global & project) + premium Control Center panel.",
+  "type": "module",
+  "main": "lib/index.js",
+  "types": "lib/types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/types/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./client": {
+      "types": "./lib/types/client/index.d.ts",
+      "default": "./lib/client.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "README.md",
+    "LICENSE"
+  ],
+  "dsh": {
+    "client": {
+      "inject": [
+        "@deepseek-ai/dsh-client-runtime"
+      ],
+      "platform": "web"
+    }
+  },
+  "keywords": [
+    "deepseek-harness",
+    "dsh",
+    "mcp",
+    "agents",
+    "rules",
+    "skills",
+    "constitution",
+    "control-center",
+    "cordis",
+    "plugin"
+  ],
+  "author": {
+    "name": "Ing. Oscar Emmanuel Martínez Galán",
+    "email": "oe.martinez03@gmail.com",
+    "country": "Mexico"
+  },
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1",
+    "@deepseek-ai/dsh-tools": "^0.1.1-rc.2",
+    "@deepseek-ai/dsh-system-prompt": "^0.1.1-rc.2",
+    "@deepseek-ai/dsh-client-connection": "^0.1.1-rc.2"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
