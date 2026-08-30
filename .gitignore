@@ -1,0 +1,13 @@
+# dependencies / build artifacts
+node_modules/
+dist/
+*.log
+
+# OS cruft
+.DS_Store
+
+# secrets — never commit tokens or keys
+.env
+.env.*
+*.pem
+!**/*.example

@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "example-local": {
+      "command": "bash",
+      "args": ["-c", "cd /path/to/project && ./vendor/bin/sail artisan my:mcp"],
+      "disabled": false
+    },
+    "example-http": {
+      "transport": "streamable-http",
+      "url": "https://mcp.example.com/mcp",
+      "headers": {
+        "Authorization": "Bearer YOUR_TOKEN"
+      },
+      "disabled": false
+    }
+  }
+}

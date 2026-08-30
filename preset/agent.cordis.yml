@@ -1,0 +1,23 @@
+# Tolten Aegis — agent preset composition.
+#
+# Durable structure for the MCP bridge. The dynamic plugin code (knowledge
+# tools + Control Center panel) lives in ../plugin/ and is loaded per session
+# until the package is published as npm (`@<org>/aegis`); once published, add
+# this row to mount it durably:
+#
+#   - id: aegis
+#     name: '@<org>/aegis'
+#
+# ── Global MCP servers (host composition rows) ─────────────────────────
+# One row per server. `serverName` becomes the tool namespace mcp__<name>__*.
+# See template/.agents/mcp.json.example for the JSON equivalent.
+- insert:
+    # - id: mcp-boost
+    #   name: '@deepseek-ai/dsh-mcp-client'
+    #   config:
+    #     serverName: boost
+    #     transport: stdio
+    #     command: bash
+    #     args: ['-c', './vendor/bin/sail artisan boost:mcp']
+    #     cwd: /path/to/your/project
+    #     failOnStartupError: false
