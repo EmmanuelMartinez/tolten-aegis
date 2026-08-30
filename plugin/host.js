@@ -131,8 +131,11 @@ return {
         try {
           const schemas = tools.schemas() || []
           for (const t of schemas) {
-            const m = /^mcp__([^_]+)__/.exec(t.name || '')
-            if (m) counts[m[1]] = (counts[m[1]] || 0) + 1
+            const parts = String(t.name || '').split('__')
+            if (parts.length >= 3 && parts[0] === 'mcp') {
+              const server = parts[1]
+              counts[server] = (counts[server] || 0) + 1
+            }
           }
         } catch (e) {}
       }

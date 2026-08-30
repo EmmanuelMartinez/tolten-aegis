@@ -49,6 +49,7 @@ textarea.tc-input{min-height:90px;resize:vertical;font-family:ui-monospace,Menlo
 `
 
 return {
+  inject: ['timer'],
   apply(ctx) {
     const slots = ctx.get('slots')
     if (slots === undefined) return
@@ -89,6 +90,12 @@ return {
       }, [])
 
       React.useEffect(function () { refresh() }, [refresh])
+
+      // live polling: picks up offline → online transitions after enable/reconnect
+      React.useEffect(function () {
+        const disposer = ctx.interval(function () { refresh() }, 5000)
+        return disposer
+      }, [refresh])
 
       function tabBtn(id, label) {
         return h('button', { className: 'tc-tab' + (tab === id ? ' on' : ''), onClick: function () { setTab(id) } }, label)
