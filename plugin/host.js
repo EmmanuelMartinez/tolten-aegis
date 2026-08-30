@@ -382,8 +382,17 @@ return {
         seen[s.serverName] = true
       }
       await fs.writeText(await fs.resolve(MCP_JSON, {}), JSON.stringify(servers, null, 2))
-      await fs.writeText(await fs.resolve(PATCH, {}), serializePatch(servers))
-      return { ok: true, servers: servers.length, message: 'Global MCP saved. HMR is reloading the bridge…' }
+      // bridge = global (just saved) + project (.agents/mcp.json), deduped; global wins
+      const project = await readProjectServers()
+      const merged = []
+      const names = {}
+      for (const s of servers.concat(project)) {
+        if (names[s.serverName]) continue
+        names[s.serverName] = true
+        merged.push(s)
+      }
+      await fs.writeText(await fs.resolve(PATCH, {}), serializePatch(merged))
+      return { ok: true, servers: servers.length, project: project.length, message: 'Global MCP saved. HMR is reloading the bridge…' }
     })
 
     harness.handle('kb-list', async function () {
