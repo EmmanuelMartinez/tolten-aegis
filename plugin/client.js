@@ -4,6 +4,7 @@
  * The Control Center panel, registered as a Settings section
  * ("Tolten Aegis"). Tabs: Overview / MCP Servers / Knowledge.
  * Pure browser half — all data comes from the Host via host.call.
+ * MCP buttons dispatch by scope: global (host bridge) or project (.agents/mcp.json).
  */
 const CSS = `
 .tc-root{display:flex;flex-direction:column;gap:16px;padding:4px 2px 24px;color:var(--dsw-alias-label-primary);font-family:inherit}
@@ -74,6 +75,7 @@ return {
       const [project, setProject] = React.useState([])
       const [kb, setKb] = React.useState(null)
       const [editingKey, setEditingKey] = React.useState(null)
+      const [editingScope, setEditingScope] = React.useState(null)
       const [draft, setDraft] = React.useState(null)
       const [msg, setMsg] = React.useState(null)
       const [busy, setBusy] = React.useState(false)
@@ -92,8 +94,9 @@ return {
         return h('button', { className: 'tc-tab' + (tab === id ? ' on' : ''), onClick: function () { setTab(id) } }, label)
       }
 
-      function beginEdit(s) {
+      function beginEdit(s, scope) {
         setEditingKey(s ? s.serverName : null)
+        setEditingScope(scope || 'global')
         setDraft(s ? JSON.parse(JSON.stringify(s)) : { id: '', serverName: '', transport: 'stdio', command: '', args: [], cwd: '', url: '', headers: [], disabled: false })
         setMsg(null)
       }
@@ -106,25 +109,31 @@ return {
         const d = draft
         if (!d.serverName) { setMsg('serverName is required'); return }
         d.id = 'mcp-' + d.serverName
+        const isProj = editingScope === 'project'
+        const base = isProj ? project : servers
         const list = editingKey
-          ? servers.map(function (x) { return x.serverName === editingKey ? d : x })
-          : servers.concat([d])
+          ? base.map(function (x) { return x.serverName === editingKey ? d : x })
+          : base.concat([d])
         setBusy(true)
-        host.call('mcp-save', { servers: list }).then(function (r) {
+        host.call(isProj ? 'mcp-project-save' : 'mcp-save', { servers: list }).then(function (r) {
           setMsg(r.message || 'Saved')
-          setEditingKey(null); setDraft(null)
+          setEditingKey(null); setEditingScope(null); setDraft(null)
           refresh()
         }).catch(function (e) { setMsg('Save failed: ' + (e && e.message || e)) }).finally(function () { setBusy(false) })
       }
 
-      function toggleServer(s) {
-        const list = servers.map(function (x) { return x.serverName === s.serverName ? Object.assign({}, x, { disabled: !x.disabled }) : x })
+      function toggleServer(s, scope) {
+        const isProj = scope === 'project'
+        const base = isProj ? project : servers
+        const list = base.map(function (x) { return x.serverName === s.serverName ? Object.assign({}, x, { disabled: !x.disabled }) : x })
         setBusy(true)
-        host.call('mcp-save', { servers: list }).then(function (r) { setMsg(r.message); refresh() }).catch(function (e) { setMsg(String(e && e.message || e)) }).finally(function () { setBusy(false) })
+        host.call(isProj ? 'mcp-project-save' : 'mcp-save', { servers: list }).then(function (r) { setMsg(r.message); refresh() }).catch(function (e) { setMsg(String(e && e.message || e)) }).finally(function () { setBusy(false) })
       }
 
-      function removeServer(s) {
-        host.call('mcp-save', { servers: servers.filter(function (x) { return x.serverName !== s.serverName }) }).then(function (r) { setMsg(r.message); refresh() }).catch(function (e) { setMsg(String(e && e.message || e)) })
+      function removeServer(s, scope) {
+        const isProj = scope === 'project'
+        const base = isProj ? project : servers
+        host.call(isProj ? 'mcp-project-save' : 'mcp-save', { servers: base.filter(function (x) { return x.serverName !== s.serverName }) }).then(function (r) { setMsg(r.message); refresh() }).catch(function (e) { setMsg(String(e && e.message || e)) })
       }
 
       function openFile(path) {
@@ -139,9 +148,10 @@ return {
 
       function mcpEditor() {
         const d = draft
+        const isProj = editingScope === 'project'
         return h('div', { className: 'tc-card' },
-          h('h4', null, 'Server configuration'),
-          h('p', { className: 'tc-sub' }, 'Persists to the global bridge and hot-reloads via HMR.'),
+          h('h4', null, 'Server configuration — ' + (isProj ? 'project scope (.agents/mcp.json)' : 'global scope')),
+          h('p', { className: 'tc-sub' }, isProj ? 'Saves to .agents/mcp.json and hot-reloads the bridge.' : 'Persists to the global bridge and hot-reloads via HMR.'),
           Field({ label: 'serverName', value: d.serverName, onChange: function (v) { setField('serverName', v) }, placeholder: 'e.g. my-server' }),
           h('div', { className: 'tc-field' },
             h('label', null, 'Transport'),
@@ -162,7 +172,7 @@ return {
               ),
           h('div', { className: 'tc-actions' },
             h('button', { className: 'tc-btn primary', disabled: busy, onClick: saveCurrent }, busy ? 'Saving…' : 'Save server'),
-            h('button', { className: 'tc-btn', onClick: function () { setEditingKey(null); setDraft(null) } }, 'Cancel'),
+            h('button', { className: 'tc-btn', onClick: function () { setEditingKey(null); setEditingScope(null); setDraft(null) } }, 'Cancel'),
           ),
         )
       }
@@ -185,7 +195,7 @@ return {
         )
       }
 
-      function mcpCard(s) {
+      function mcpCard(s, scope) {
         return h('div', { className: 'tc-card' },
           h('div', { className: 'tc-row' },
             h('h4', null, s.serverName),
@@ -193,9 +203,9 @@ return {
           ),
           h('p', { className: 'tc-sub' }, (s.transport === 'stdio' ? (s.command + ' ' + (s.args || []).join(' ')) : s.url).slice(0, 70)),
           h('div', { className: 'tc-actions' },
-            h('button', { className: 'tc-btn', onClick: function () { beginEdit(s) } }, 'Edit'),
-            h('button', { className: 'tc-btn', onClick: function () { toggleServer(s) } }, s.disabled ? 'Enable' : 'Disable'),
-            h('button', { className: 'tc-btn danger', onClick: function () { removeServer(s) } }, 'Remove'),
+            h('button', { className: 'tc-btn', onClick: function () { beginEdit(s, scope) } }, 'Edit'),
+            h('button', { className: 'tc-btn', onClick: function () { toggleServer(s, scope) } }, s.disabled ? 'Enable' : 'Disable'),
+            h('button', { className: 'tc-btn danger', onClick: function () { removeServer(s, scope) } }, 'Remove'),
           ),
         )
       }
@@ -221,11 +231,11 @@ return {
             statCard('Rules', String(st.knowledge.ruleCount)),
           ),
           h('div', { className: 'tc-h3' }, 'MCP servers (global scope)'),
-          h('div', { className: 'tc-grid' }, (st.mcp || []).map(function (s) { return mcpCard(s) })),
+          h('div', { className: 'tc-grid' }, (st.mcp || []).map(function (s) { return mcpCard(s, 'global') })),
           h('div', { className: 'tc-h3' }, 'MCP servers (project scope — .agents/mcp.json)'),
           (st.projectMcp || []).length === 0
             ? h('div', { className: 'tc-empty' }, 'No project MCP configured. Add .agents/mcp.json to define per-project servers.')
-            : h('div', { className: 'tc-grid' }, (st.projectMcp || []).map(function (s) { return mcpCard(s) })),
+            : h('div', { className: 'tc-grid' }, (st.projectMcp || []).map(function (s) { return mcpCard(s, 'project') })),
         )
       }
 
@@ -233,14 +243,14 @@ return {
         return h('div', null,
           h('div', { className: 'tc-row', style: { marginBottom: '12px' } },
             h('div', { className: 'tc-h3', style: { margin: 0 } }, 'MCP servers — global scope'),
-            h('button', { className: 'tc-btn primary', onClick: function () { beginEdit(null) } }, '+ Add server'),
+            h('button', { className: 'tc-btn primary', onClick: function () { beginEdit(null, 'global') } }, '+ Add server'),
           ),
           editingKey !== null ? mcpEditor() : null,
-          h('div', { className: 'tc-grid' }, servers.map(function (s) { return mcpCard(s) })),
+          h('div', { className: 'tc-grid' }, servers.map(function (s) { return mcpCard(s, 'global') })),
           h('div', { className: 'tc-h3' }, 'MCP servers — project scope (.agents/mcp.json)'),
           project.length === 0
             ? h('div', { className: 'tc-empty' }, 'No project servers. Edit .agents/mcp.json to define them.')
-            : h('div', { className: 'tc-grid' }, project.map(function (s) { return mcpCard(s) })),
+            : h('div', { className: 'tc-grid' }, project.map(function (s) { return mcpCard(s, 'project') })),
         )
       }
 

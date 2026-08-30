@@ -186,6 +186,45 @@ return {
       })
     }
 
+    // bridge = global + project, deduped; global wins
+    async function regenerateBridge(globalList, projectList) {
+      const merged = []
+      const names = {}
+      for (const s of globalList.concat(projectList)) {
+        if (names[s.serverName]) continue
+        names[s.serverName] = true
+        merged.push(s)
+      }
+      await fs.writeText(await fs.resolve(PATCH, {}), serializePatch(merged))
+      return merged.length
+    }
+
+    // write .agents/mcp.json (standard mcpServers format) and refresh the bridge
+    async function writeProjectServers(servers) {
+      const root = projectRoot()
+      const map = {}
+      for (const s of servers) {
+        const c = { disabled: !!s.disabled }
+        if (s.transport === 'streamable-http') {
+          c.transport = 'streamable-http'
+          if (s.url) c.url = s.url
+          if (Array.isArray(s.headers) && s.headers.length) {
+            c.headers = {}
+            for (const h of s.headers) c.headers[h.name] = h.value
+          }
+        } else {
+          if (s.command) c.command = s.command
+          if (Array.isArray(s.args) && s.args.length) c.args = s.args
+          if (s.cwd) c.cwd = s.cwd
+        }
+        map[s.serverName] = c
+      }
+      await fs.writeText(await fs.resolve(root + '/.agents/mcp.json', {}), JSON.stringify({ mcpServers: map }, null, 2))
+      const global = await readGlobalServers()
+      await regenerateBridge(global, servers)
+      return servers.length
+    }
+
     // ── knowledge path helpers ───────────────────────────────────────
     function normRel(rel) {
       return String(rel || '').replace(/\\/g, '/').replace(/^\.\/+/, '').replace(/^\/+/, '')
@@ -195,13 +234,11 @@ return {
       const n = normRel(rel)
       const root = projectRoot()
       const agentsBase = await fs.resolve(root + '/.agents', {})
-      // root-relative special files (.clinerules, AGENTS.md) or already-prefixed .agents/...
       if (n === '.clinerules' || n === 'AGENTS.md' || n.indexOf('.agents/') === 0) {
         const target = await fs.resolve(root + '/' + n, {})
         if (n.indexOf('.agents/') === 0 && !fs.contains(agentsBase, target)) throw new Error('outside knowledge base: ' + n)
         return target
       }
-      // .agents-relative paths (skills/<name>/SKILL.md, rules/<file>.md)
       const target = await fs.resolve(root + '/.agents/' + n, {})
       if (!fs.contains(agentsBase, target)) throw new Error('outside knowledge base: ' + n)
       return target
@@ -382,17 +419,19 @@ return {
         seen[s.serverName] = true
       }
       await fs.writeText(await fs.resolve(MCP_JSON, {}), JSON.stringify(servers, null, 2))
-      // bridge = global (just saved) + project (.agents/mcp.json), deduped; global wins
       const project = await readProjectServers()
-      const merged = []
-      const names = {}
-      for (const s of servers.concat(project)) {
-        if (names[s.serverName]) continue
-        names[s.serverName] = true
-        merged.push(s)
-      }
-      await fs.writeText(await fs.resolve(PATCH, {}), serializePatch(merged))
+      await regenerateBridge(servers, project)
       return { ok: true, servers: servers.length, project: project.length, message: 'Global MCP saved. HMR is reloading the bridge…' }
+    })
+
+    harness.handle('mcp-project-save', async function (args) {
+      const servers = Array.isArray(args && args.servers) ? args.servers : []
+      for (const s of servers) {
+        if (!s.serverName || !s.transport) throw new Error('each server needs serverName and transport')
+        if (!/^[A-Za-z0-9_-]{1,32}$/.test(s.serverName)) throw new Error('invalid serverName: ' + s.serverName)
+      }
+      await writeProjectServers(servers)
+      return { ok: true, servers: servers.length, message: 'Project MCP saved to .agents/mcp.json. HMR is reloading the bridge…' }
     })
 
     harness.handle('kb-list', async function () {
