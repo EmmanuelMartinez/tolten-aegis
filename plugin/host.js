@@ -424,7 +424,7 @@ return {
       await fs.writeText(await fs.resolve(MCP_JSON, {}), JSON.stringify(servers, null, 2))
       const project = await readProjectServers()
       await regenerateBridge(servers, project)
-      return { ok: true, servers: servers.length, project: project.length, message: 'Global MCP saved. HMR is reloading the bridge…' }
+      return { ok: true, servers: servers.length, project: project.length, message: 'Global MCP saved. The bridge applies it on the next harness restart.' }
     })
 
     harness.handle('mcp-project-save', async function (args) {
@@ -434,7 +434,7 @@ return {
         if (!/^[A-Za-z0-9_-]{1,32}$/.test(s.serverName)) throw new Error('invalid serverName: ' + s.serverName)
       }
       await writeProjectServers(servers)
-      return { ok: true, servers: servers.length, message: 'Project MCP saved to .agents/mcp.json. HMR is reloading the bridge…' }
+      return { ok: true, servers: servers.length, message: 'Project MCP saved to .agents/mcp.json. The bridge applies it on the next harness restart.' }
     })
 
     harness.handle('kb-list', async function () {

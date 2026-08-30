@@ -203,12 +203,15 @@ return {
       }
 
       function mcpCard(s, scope) {
+        const conflict = s.disabled && s.connected
         return h('div', { className: 'tc-card' },
           h('div', { className: 'tc-row' },
             h('h4', null, s.serverName),
             s.connected ? pill(true, 'online · ' + s.toolCount) : (s.disabled ? pill(false, 'disabled') : pill(false, 'offline')),
           ),
-          h('p', { className: 'tc-sub' }, (s.transport === 'stdio' ? (s.command + ' ' + (s.args || []).join(' ')) : s.url).slice(0, 70)),
+          conflict
+            ? h('p', { className: 'tc-sub', style: { color: 'var(--dsw-alias-state-warn-primary)', marginTop: '6px' } }, '⚠ Saved: disabled — still online now, applies on harness restart')
+            : h('p', { className: 'tc-sub' }, (s.transport === 'stdio' ? (s.command + ' ' + (s.args || []).join(' ')) : s.url).slice(0, 70)),
           h('div', { className: 'tc-actions' },
             h('button', { className: 'tc-btn', onClick: function () { beginEdit(s, scope) } }, 'Edit'),
             h('button', { className: 'tc-btn', onClick: function () { toggleServer(s, scope) } }, s.disabled ? 'Enable' : 'Disable'),
@@ -252,6 +255,7 @@ return {
             h('div', { className: 'tc-h3', style: { margin: 0 } }, 'MCP servers — global scope'),
             h('button', { className: 'tc-btn primary', onClick: function () { beginEdit(null, 'global') } }, '+ Add server'),
           ),
+          h('div', { className: 'tc-note', style: { marginBottom: '12px' } }, '⚠ The pill shows the LIVE connection state. Disable/Enable saves the config; the bridge applies it on the next harness restart (live HMR is not available in this session).'),
           editingKey !== null ? mcpEditor() : null,
           h('div', { className: 'tc-grid' }, servers.map(function (s) { return mcpCard(s, 'global') })),
           h('div', { className: 'tc-h3' }, 'MCP servers — project scope (.agents/mcp.json)'),
