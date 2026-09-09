@@ -107,6 +107,16 @@ tolten-aegis/
 
 ---
 
+## 🤝 Community
+
+Tolten Aegis is open source and community-driven. We want the DeepSeek Harness
+community to help sharpen the shield:
+
+- 🐛 Report bugs, 💡 suggest features, or 🔧 open a PR — see
+  [`CONTRIBUTING.md`](CONTRIBUTING.md).
+- 🌱 Bring the `.agents` standard to your projects and tell us what's missing.
+- 🧪 Known area to help: the `cordis.patch.yml` HMR bridge reload (see CONTRIBUTING).
+
 ## 🧪 License & credit
 
 MIT — © **Ing. Oscar Emmanuel Martínez Galán** (🇲🇽).
