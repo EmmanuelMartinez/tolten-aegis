@@ -117,6 +117,16 @@ community to help sharpen the shield:
 - 🌱 Bring the `.agents` standard to your projects and tell us what's missing.
 - 🧪 Known area to help: the `cordis.patch.yml` HMR bridge reload (see CONTRIBUTING).
 
+## 🌎 Tolten ecosystem
+
+Plugins that share the same standards (MD3, both halves, honest diagnostics):
+
+| Repo | What it is |
+|---|---|
+| **tolten-aegis** | 🛡️ This repo — `.agents` constitution, knowledge tools, MCP control center |
+| [tolten-workspace-explore](https://github.com/EmmanuelMartinez/tolten-workspace-explore) | 🗂️ Files & Git dock that pushes the chat aside (tree, source control, view-only branch history, drag-to-chat `@path`) |
+| [tolten-image-attach](https://github.com/EmmanuelMartinez/tolten-image-attach) | 🖼️ Attach an image and the session switches itself to a vision model |
+
 ## 🧪 License & credit
 
 MIT — © **Ing. Oscar Emmanuel Martínez Galán** (🇲🇽).
