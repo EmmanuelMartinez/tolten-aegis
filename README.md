@@ -1,5 +1,7 @@
 # 🛡️ Tolten Aegis
 
+[![CI](https://github.com/EmmanuelMartinez/tolten-aegis/actions/workflows/ci.yml/badge.svg)](https://github.com/EmmanuelMartinez/tolten-aegis/actions/workflows/ci.yml)
+
 > **The shield that makes DeepSeek Harness infallible on any project.**
 >
 > Rules enforced. Knowledge loaded. Control in your hands.
@@ -116,6 +118,23 @@ community to help sharpen the shield:
   [`CONTRIBUTING.md`](CONTRIBUTING.md).
 - 🌱 Bring the `.agents` standard to your projects and tell us what's missing.
 - 🧪 Known area to help: the `cordis.patch.yml` HMR bridge reload (see CONTRIBUTING).
+
+## 🤝 Contributing & support
+
+| Where | What for |
+| --- | --- |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Standards, dev loop and PR expectations. |
+| [Issues](https://github.com/EmmanuelMartinez/tolten-aegis/issues/new/choose) | Bug reports and feature requests (templates provided). |
+| [Discussions](https://github.com/EmmanuelMartinez/tolten-aegis/discussions) | Questions, ideas, and showing what you built. |
+| [SECURITY.md](SECURITY.md) | Private vulnerability reporting. |
+| [CHANGELOG.md](CHANGELOG.md) | What changed in each version. |
+| [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) | The community standard we hold ourselves to. |
+
+Run the same check CI runs, locally:
+
+```bash
+node scripts/validate.js
+```
 
 ## 🌎 Tolten ecosystem
 
